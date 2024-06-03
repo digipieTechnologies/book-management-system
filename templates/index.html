@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Book Management System</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Book Management System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/books">Book page</a>
+                    </li>
+
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <form class="form-inline my-2 my-lg-0" id="searchForm">
+                        <input class="form-control mr-sm-2" type="search" id="searchInput" placeholder="Search"
+                            aria-label="Search">
+                        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                    </form>
+                    <!-- {% if current_user.is_authenticated %} -->
+                    <li class="nav-item" style="margin-right: 10px;">
+                        <a class="btn btn-outline-light" aria-current="page" href="/admin/panel">Admin Panel</a>
+                    </li>
+                    <!-- {% endif %} -->
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light" href="/logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout ({{ current_user.name }})
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div id="formContainer">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% endwith %}
+        <div class="form-container">
+            <h2 class="section-heading">Add New Book</h2>
+            <form method="POST" action="/add_book" enctype="multipart/form-data">
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" placeholder="Enter book title" required>
+                <label for="author">Author:</label>
+                <input type="text" id="author" name="author" placeholder="Enter author name" required>
+                <label for="published_date">Published Date:</label>
+                <input type="date" id="published_date" name="published_date" required>
+                <label for="isbn">ISBN:</label>
+                <input type="text" id="isbn" name="isbn" placeholder="Enter ISBN" required>
+                <label for="num_pages">Number of Pages:</label>
+                <input type="number" id="num_pages" name="num_pages" placeholder="Enter number of pages" required>
+                <label for="cover_image">Cover Image:</label>
+                <input type="file" id="cover_image" name="cover_image" placeholder="Enter cover image URL" required>
+                <label for="genre">Genre:</label>
+                <input type="text" id="genre" name="genre" placeholder="Enter genre" required>
+                <label for="publisher">Publisher:</label>
+                <input type="text" id="publisher" name="publisher" placeholder="Enter publisher" required>
+                <label for="language">Language:</label>
+                <input type="text" id="language" name="language" placeholder="Enter language" required>
+                <label for="description">Description:</label>
+                <input type="text" id="description" name="description" placeholder="Enter description" required>
+                <label for="ratings">Ratings:</label>
+                <input type="text" id="ratings" name="ratings" placeholder="Enter ratings" required>
+                <button type="submit">Add Book</button>
+            </form>
+
+        </div>
+
+        <div class="form-container">
+            <form id="updateBookForm" enctype="multipart/form-data" style="display:none;"
+                onsubmit="event.preventDefault(); updateBook();">
+                <input type="hidden" id="bookIdInputUpdate">
+                <label for="titleInputUpdate">Title:</label>
+                <input type="text" id="titleInputUpdate">
+                <label for="authorInputUpdate">Author:</label>
+                <input type="text" id="authorInputUpdate">
+                <label for="publishedDateInputUpdate">Published Date:</label>
+                <input type="date" id="publishedDateInputUpdate">
+                <label for="isbnInputUpdate">ISBN:</label>
+                <input type="text" id="isbnInputUpdate">
+                <label for="numPagesInputUpdate">Number of Pages:</label>
+                <input type="number" id="numPagesInputUpdate">
+                <label for="coverImage">Choose a cover image:</label>
+                <input type="file" id="coverImage" name="cover_image">
+                <label for="genreInputUpdate">Genre:</label>
+                <input type="text" id="genreInputUpdate">
+                <label for="publisherInputUpdate">Publisher:</label>
+                <input type="text" id="publisherInputUpdate">
+                <label for="languageInputUpdate">Language:</label>
+                <input type="text" id="languageInputUpdate">
+                <label for="descriptionInputUpdate">Description:</label>
+                <textarea id="descriptionInputUpdate"></textarea>
+                <label for="ratingsInputUpdate">Ratings:</label>
+                <input type="number" id="ratingsInputUpdate">
+                <button type="submit">Update Book</button>
+            </form>
+        </div>
+    </div>
+    </div>
+
+    <div class="pagination">
+        <ol id="numbers" class="pagination-list"></ol>
+    </div>
+
+
+    <table id="outputTable">
+        <tr>
+            <thead>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Published Date</th>
+                <th>ISBN</th>
+                <th>Number of Pages</th>
+                <th>Cover Image URL</th>
+                <th>Genre</th>
+                <th>Publisher</th>
+                <th>Language</th>
+                <th>Description</th>
+                <th>Ratings</th>
+                <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <!-- <tr> -->
+            <tr data-id="{{ book.id }}">
+                <td>{{ book.id }}</td>
+                <td>{{ book.title }}</td>
+                <td>{{ book.author }}</td>
+                <td>{{ book.published_date }}</td>
+                <td>{{ book.isbn }}</td>
+                <td>{{ book.num_pages }}</td>
+                <td>
+                    {% if book.cover_image_url %}
+                    
+                    <img src="{{ url_for('book_blueprint.uploaded_file', filename=book.cover_image_url.split('/')[-1]) }}" width="100">
+                    {% endif %}
+                </td>
+
+                <td>{{ book.genre }}</td>
+                <td>{{ book.publisher }}</td>
+                <td>{{ book.language }}</td>
+                <td>{{ book.description }}</td>
+                <td>{{ book.ratings }}</td>
+
+                <!-- <td><button onclick="deleteBook({{ book.id }})">Delete</button></td> -->
+                <td>
+                    <button onclick="deleteBook('{{ book.id }}')">Delete</button>
+                    <button onclick="fillUpdateForm('{{ book.id }}')">Update</button> <!-- Update button -->
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+
+
+
+    <script>
+
+        $(function () {
+            const rowsPerPage = 4;
+            const rows = $('#outputTable tbody tr');
+            const rowsCount = rows.length;
+            const pageCount = Math.ceil(rowsCount / rowsPerPage);
+            const numbers = $('#numbers');
+
+            // Generate the pagination.
+            for (let i = 0; i < pageCount; i++) {
+                numbers.append('<li><a href="#">' + (i + 1) + '</a></li>');
+            }
+
+            // Mark the first page link as active.
+            $('#numbers li:first-child a').addClass('active');
+
+            // Display the first set of rows.
+            displayRows(1);
+
+            // On pagination click.
+            $('#numbers li a').click(function (e) {
+                e.preventDefault();
+                const $this = $(this);
+
+                // Remove the active class from the links.
+                $('#numbers li a').removeClass('active');
+
+                // Add the active class to the current link.
+                $this.addClass('active');
+
+                // Show the rows corresponding to the clicked page ID.
+                displayRows(parseInt($this.text()));
+            });
+
+            // Function that displays rows for a specific page.
+            function displayRows(index) {
+                const start = (index - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                rows.hide();
+                rows.slice(start, end).show();
+
+
+            }
+        });
+        function addBook() {
+            let title = document.getElementById("title").value;
+            let author = document.getElementById("author").value;
+            let publishedDate = document.getElementById("published_date").value;
+            let isbn = document.getElementById("isbn").value;
+            let numPages = document.getElementById("num_pages").value;
+            let coverImageFile = document.getElementById("cover_image").files[0];
+            let genre = document.getElementById("genre").value;
+            let publisher = document.getElementById("publisher").value;
+            let language = document.getElementById("language").value;
+            let description = document.getElementById("description").value;
+            let ratings = document.getElementById("ratings").value;
+
+            let formData = {
+                title: title,
+                author: author,
+                published_date: publishedDate,
+                isbn: isbn,
+                num_pages: numPages,
+                cover_image: coverImageFile,
+                genre: genre,
+                publisher: publisher,
+                language: language,
+                description: description,
+                ratings: ratings
+            };
+
+            // Make an AJAX request to add the book to the server
+            fetch('/add_book', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    let table = document.getElementById("outputTable");
+                    let newRow = table.insertRow();
+
+                    newRow.innerHTML = `
+            <td>${data.id}</td>
+            <td>${title}</td>
+            <td>${author}</td>
+            <td>${publishedDate}</td>
+            <td>${isbn}</td>
+            <td>${numPages}</td>
+            <td><img src="${data.cover_image_url}" width="100" alt="Cover Image"></td> 
+            <td>${genre}</td>
+            <td>${publisher}</td>
+            <td>${language}</td>
+            <td>${description}</td>
+            <td>${ratings}</td>
+            <td>
+                <button onclick="deleteBook(${data.id})">Delete</button>
+                <button onclick="fillUpdateForm(${data.id})">Update</button>
+            </td>
+        `;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+
+        function fillUpdateForm(bookId) {
+            let row = document.querySelector(`[data-id="${bookId}"]`);
+            let title = row.cells[1].textContent;
+            let author = row.cells[2].textContent;
+            let publishedDate = row.cells[3].textContent;
+            let isbn = row.cells[4].textContent;
+            let numPages = row.cells[5].textContent;
+            let coverImageURL = row.cells[6].querySelector('img').getAttribute('src');
+            let genre = row.cells[7].textContent;
+            let publisher = row.cells[8].textContent;
+            let language = row.cells[9].textContent;
+            let description = row.cells[10].textContent;
+            let ratings = row.cells[11].textContent;
+
+            document.getElementById("bookIdInputUpdate").value = bookId;
+            document.getElementById("titleInputUpdate").value = title;
+            document.getElementById("authorInputUpdate").value = author;
+            document.getElementById("publishedDateInputUpdate").value = publishedDate;
+            document.getElementById("isbnInputUpdate").value = isbn;
+            document.getElementById("numPagesInputUpdate").value = numPages;
+            // document.getElementById("coverImageURLInputUpdate").value = coverImageURL;
+            document.getElementById("genreInputUpdate").value = genre;
+            document.getElementById("publisherInputUpdate").value = publisher;
+            document.getElementById("languageInputUpdate").value = language;
+            document.getElementById("descriptionInputUpdate").value = description;
+            document.getElementById("ratingsInputUpdate").value = ratings;
+
+            document.getElementById("updateBookForm").style.display = "block";
+        }
+
+        function updateBook() {
+            let bookId = document.getElementById("bookIdInputUpdate").value;
+            let title = document.getElementById("titleInputUpdate").value;
+            let author = document.getElementById("authorInputUpdate").value;
+            let publishedDate = document.getElementById("publishedDateInputUpdate").value;
+            let isbn = document.getElementById("isbnInputUpdate").value;
+            let numPages = document.getElementById("numPagesInputUpdate").value;
+            let coverImageFile = document.getElementById("coverImage").files[0];
+            let genre = document.getElementById("genreInputUpdate").value;
+            let publisher = document.getElementById("publisherInputUpdate").value;
+            let language = document.getElementById("languageInputUpdate").value;
+            let description = document.getElementById("descriptionInputUpdate").value;
+            let ratings = document.getElementById("ratingsInputUpdate").value;
+
+            let formData = new FormData();
+            formData.append('book_id', bookId);
+            formData.append('title', title);
+            formData.append('author', author);
+            formData.append('published_date', publishedDate);
+            formData.append('isbn', isbn);
+            formData.append('num_pages', numPages);
+            // formData.append('cover_image', coverImageFile);
+            formData.append('genre', genre);
+            formData.append('publisher', publisher);
+            formData.append('language', language);
+            formData.append('description', description);
+            formData.append('ratings', ratings);
+            if (coverImageFile) {
+                formData.append('cover_image', coverImageFile);
+            }
+            fetch('/update_book', {
+                method: 'PUT',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Update the table row with the new values
+                    let row = document.querySelector(`[data-id="${bookId}"]`);
+                    row.cells[1].textContent = title;
+                    row.cells[2].textContent = author;
+                    row.cells[3].textContent = publishedDate;
+                    row.cells[4].textContent = isbn;
+                    row.cells[5].textContent = numPages;
+                    // Assuming the response includes the updated cover image URL
+                    row.cells[6].querySelector('img').setAttribute('src', data.data.cover_image_url);
+                    // Additional fields
+                    row.cells[7].textContent = genre;
+                    row.cells[8].textContent = publisher;
+                    row.cells[9].textContent = language;
+                    row.cells[10].textContent = description;
+                    row.cells[11].textContent = ratings;
+
+                    // Hide the update form after successful update
+                    document.getElementById("updateBookForm").style.display = "none";
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+
+
+
+        function deleteBook(bookId) {
+            // Make an AJAX request to delete the book from the server
+            fetch(`/delete_book/${bookId}`, {
+                method: 'delete',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // If the deletion was successful, remove the book row from the table
+                        let row = document.querySelector(`[data-id="${bookId}"]`);
+                        row.remove();
+                    } else {
+                        console.error('Failed to delete book');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+
+        document.getElementById('searchForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            let searchQuery = document.getElementById('searchInput').value.trim();
+
+            // Check if the search query is empty
+            if (!searchQuery) {
+                alert('Please enter a search query.');
+                return; // Exit the function if the search query is empty
+            }
+            // Call backend function to perform search
+            searchBooks(searchQuery);
+        });
+
+        function searchBooks(query) {
+            fetch(`/search?q=${query}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch search results');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    let table = document.getElementById("outputTable");
+                    // Clear existing table content except the header row
+                    for (let i = table.rows.length - 1; i > 0; i--) {
+                        table.deleteRow(i);
+                    }
+
+                    if (data.length === 0) {
+                        // If no search results, remove the table and display error message
+                        table.style.display = "none";
+                        let errorMessage = document.createElement('div');
+                        errorMessage.classList.add('error-message');
+                        errorMessage.textContent = 'No results found.';
+                        document.body.appendChild(errorMessage);
+                    } else {
+                        // Iterate through search results and add rows to the table
+                        table.style.display = ""; // Display the table if there are results
+                        data.forEach(book => {
+                            let newRow = table.insertRow();
+                            newRow.innerHTML = `
+                    <td>${book.id}</td>
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>${book.published_date}</td>
+                    <td>${book.isbn}</td>
+                    <td>${book.num_pages}</td>
+                    <td><img src="${book.cover_image_url}" width="100" alt="Cover Image"></td> 
+                    <td>${book.genre}</td>
+                    <td>${book.publisher}</td>
+                    <td>${book.language}</td>
+                    <td>${book.description}</td>
+                    <td>${book.ratings}</td>
+                    <td>
+                        <button onclick="deleteBook(${book.id})">Delete</button>
+                        <button onclick="fillUpdateForm(${book.id})">Update</button>
+                    </td>
+                `;
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    let table = document.getElementById("outputTable");
+                    // Remove the table and display error message
+                    table.style.display = "none";
+                    let errorMessage = document.createElement('div');
+                    errorMessage.classList.add('error-message');
+                    errorMessage.textContent = 'An error occurred while fetching search results. Please try again later.';
+                    document.body.appendChild(errorMessage);
+                });
+        }
+
+
+    </script>
+</body>
+
+</html>
