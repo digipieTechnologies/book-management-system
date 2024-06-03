@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sliding Login & Registration Form</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1 class="heading">Book Management System</h1>
+        <h3 class="title">Sliding Login & Registration</h3>
+    </header>
+
+    <div class="container">
+        <div class="slider"></div>
+        <div class="btn">
+            <button class="login active">Login</button>
+            <button class="signup">Signup</button>
+        </div>
+        <div class="form-section">
+            <div class="login-box">
+                <h3 class="title">Login</h3>
+                <form method="POST" action="/login">
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-large" type="email" name="email" placeholder="Your Email"
+                                autofocus="">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-large" type="password" name="password" placeholder="Your Password">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox">
+                            <input type="checkbox" name="remember">
+                            Remember me
+                        </label>
+                    </div>
+                    <button class="button is-block is-info is-large is-fullwidth">Login</button>
+                </form>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                {% if category == 'login_error' %}
+                <div class="flash-message danger">{{ message }}</div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+
+
+            <div class="signup-box">
+                <h3 class="title">Signup</h3>
+                <form method="POST" action="/register">
+
+
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-large" type="text" name="name" placeholder="Your Name" autofocus="">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-large" type="email" name="email" placeholder="Your Email">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-large" type="password" name="password" placeholder="Your Password">
+                        </div>
+                    </div>
+
+                    <button class="button is-block is-info is-large is-fullwidth">Signup</button>
+
+                </form>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                {% if category == 'signup_error' %}
+                <div class="alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        let signup = document.querySelector(".signup");
+        let login = document.querySelector(".login");
+        let slider = document.querySelector(".slider");
+        let formSection = document.querySelector(".form-section");
+
+        signup.addEventListener("click", () => {
+            slider.classList.add("moveslider");
+            formSection.classList.add("form-section-move");
+        });
+
+        login.addEventListener("click", () => {
+            slider.classList.remove("moveslider");
+            formSection.classList.remove("form-section-move");
+        });
+
+    </script>
+</body>
+
+</html>
